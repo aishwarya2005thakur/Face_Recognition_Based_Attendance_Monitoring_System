@@ -1,7 +1,3 @@
-Here’s a clean, concise **README.md** you can use for your **Face Recognition Based Attendance Monitoring System** 👇
-
----
-
 # 🧠 Face Recognition Based Attendance Monitoring System
 
 A smart attendance system that uses **face recognition** to automatically detect and record student or employee attendance. This eliminates manual entry errors and saves time by leveraging computer vision and machine learning techniques.
