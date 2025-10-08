@@ -1,0 +1,2 @@
+# Face_Recognition_Based_Attendance_Monitoring_System
+The Face Recognition Based Attendance Monitoring System is an AI-powered solution designed to automate the attendance process using facial recognition technology. By capturing live video input through a camera, the system detects and identifies faces in real time, then marks attendance automatically with the person’s name, date, and timestamp. This eliminates the need for manual attendance, reduces proxy issues, and ensures accurate and efficient record-keeping.
