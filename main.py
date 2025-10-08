@@ -377,7 +377,7 @@ ACCENT = '#4a90e2'
 TEXT = '#333333'
 
 window = tk.Tk()
-window.title('Face Recognition Attendance System')
+window.title('SmartAttend.AI')
 window.geometry('1280x720')
 window.configure(bg=BASE_BG)
 window.resizable(True, False)
@@ -406,7 +406,7 @@ id_var = tk.StringVar()
 name_var = tk.StringVar()
 
 # Header
-header = ttk.Label(window, text='Face Recognition Based Attendance System', style='Header.TLabel')
+header = ttk.Label(window, text='SmartAttend', style='Header.TLabel')
 header.place(relx=0.02, rely=0.02)
 
 # Date & Clock cards
