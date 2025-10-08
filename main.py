@@ -1,197 +1,259 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import messagebox as mess
 import tkinter.simpledialog as tsd
-import cv2,os
-import csv
+import cv2, os, csv
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageTk
 import pandas as pd
-import datetime
-import time
+import datetime, time
+
+# ----------------------------- Helper: Paths & Utilities -----------------------------
 
 def assure_path_exists(path):
     dir = os.path.dirname(path)
-    if not os.path.exists(dir):
+    if dir and (not os.path.exists(dir)):
         os.makedirs(dir)
+
+# ----------------------------- Custom Dialogs (modern look) -----------------------------
+
+def show_info(title, message):
+    _show_dialog(title, message, 'info')
+
+def show_error(title, message):
+    _show_dialog(title, message, 'error')
+
+def show_warning(title, message):
+    _show_dialog(title, message, 'warning')
+
+
+def _show_dialog(title, message, kind='info'):
+    # custom modal dialog using ttk for consistent look
+    dlg = tk.Toplevel(window)
+    dlg.transient(window)
+    dlg.grab_set()
+    dlg.title(title)
+    dlg.geometry('420x140')
+    dlg.resizable(False, False)
+    dlg.configure(bg=BASE_BG)
+
+    frm = ttk.Frame(dlg, padding=(16, 12))
+    frm.pack(fill='both', expand=True)
+
+    msg_label = ttk.Label(frm, text=message, wraplength=380, justify='left')
+    msg_label.pack(pady=(6, 12))
+
+    btn_frame = ttk.Frame(frm)
+    btn_frame.pack(fill='x')
+
+    def close():
+        dlg.grab_release()
+        dlg.destroy()
+
+    ok_btn = ttk.Button(btn_frame, text='OK', command=close)
+    ok_btn.pack(side='right')
+    ok_btn.focus()
+    dlg.wait_window()
+
+# ----------------------------- Clock tick -----------------------------
 
 def tick():
     time_string = time.strftime('%H:%M:%S')
-    clock.config(text=time_string)
-    clock.after(200,tick)
+    clock_var.set(time_string)
+    window.after(200, tick)
+
+# ----------------------------- Contact -----------------------------
 
 def contact():
-    mess._show(title='Contact us', message="Please contact us on : 'xxxxxxxxxxxxx@gmail.com' ")
+    show_info('Contact us', "Please contact us at: xxxxxxxxxxxxx@gmail.com")
+
+# ----------------------------- Check Haarcascade -----------------------------
 
 def check_haarcascadefile():
     exists = os.path.isfile("haarcascade_frontalface_default.xml")
-    if exists:
-        pass
-    else:
-        mess._show(title='Some file missing', message='Please contact us for help')
+    if not exists:
+        show_error('Some file missing', 'haarcascade_frontalface_default.xml not found.\nPlease place it in the application folder.')
         window.destroy()
 
+# ----------------------------- Password change UI & logic -----------------------------
 
 def save_pass():
     assure_path_exists("TrainingImageLabel/")
-    exists1 = os.path.isfile("TrainingImageLabel\psd.txt")
+    exists1 = os.path.isfile("TrainingImageLabel/psd.txt")
     if exists1:
-        tf = open("TrainingImageLabel\psd.txt", "r")
-        key = tf.read()
+        with open("TrainingImageLabel/psd.txt", "r") as tf:
+            key = tf.read()
     else:
         master.destroy()
-        new_pas = tsd.askstring('Old Password not found', 'Please enter a new password below', show='*')
-        if new_pas == None:
-            mess._show(title='No Password Entered', message='Password not set!! Please try again')
-        else:
-            tf = open("TrainingImageLabel\psd.txt", "w")
-            tf.write(new_pas)
-            mess._show(title='Password Registered', message='New password was registered successfully!!')
+        new_pas = tsd.askstring('Password', 'Old Password not found. Enter a new password:', show='*')
+        if new_pas is None:
+            show_warning('No Password', 'Password not set. Please try again.')
             return
-    op = (old.get())
-    newp= (new.get())
-    nnewp = (nnew.get())
-    if (op == key):
-        if(newp == nnewp):
-            txf = open("TrainingImageLabel\psd.txt", "w")
-            txf.write(newp)
         else:
-            mess._show(title='Error', message='Confirm new password again!!!')
+            with open("TrainingImageLabel/psd.txt", "w") as tf:
+                tf.write(new_pas)
+            show_info('Registered', 'New password registered successfully!')
             return
-    else:
-        mess._show(title='Wrong Password', message='Please enter correct old password.')
-        return
-    mess._show(title='Password Changed', message='Password changed successfully!!')
-    master.destroy()
 
-# password check 
+    op = old_var.get().strip()
+    newp = new_var.get().strip()
+    nnewp = nnew_var.get().strip()
+
+    if op == key:
+        if newp == nnewp and newp:
+            with open("TrainingImageLabel/psd.txt", "w") as txf:
+                txf.write(newp)
+            show_info('Password Changed', 'Password changed successfully!')
+            master.destroy()
+        else:
+            show_error('Error', 'New passwords do not match or are empty.')
+    else:
+        show_error('Wrong Password', 'Please enter the correct old password.')
+
 
 def change_pass():
-    global master
-    master = tk.Tk()
-    master.geometry("400x160")
-    master.resizable(False,False)
-    master.title("Change Password")
-    master.configure(background="#f5f5f5")
-    lbl4 = tk.Label(master,text='    Enter Old Password',bg='#f5f5f5',font=('Segoe UI', 11))
-    lbl4.place(x=10,y=10)
-    global old
-    old=tk.Entry(master,width=25 ,fg="#2c3e50",relief='solid',font=('Segoe UI', 11),show='*',borderwidth=1)
-    old.place(x=180,y=10)
-    lbl5 = tk.Label(master, text='   Enter New Password', bg='#f5f5f5', font=('Segoe UI', 11))
-    lbl5.place(x=10, y=45)
-    global new
-    new = tk.Entry(master, width=25, fg="#2c3e50",relief='solid', font=('Segoe UI', 11),show='*',borderwidth=1)
-    new.place(x=180, y=45)
-    lbl6 = tk.Label(master, text='Confirm New Password', bg='#f5f5f5', font=('Segoe UI', 11))
-    lbl6.place(x=10, y=80)
-    global nnew
-    nnew = tk.Entry(master, width=25, fg="#2c3e50", relief='solid',font=('Segoe UI', 11),show='*',borderwidth=1)
-    nnew.place(x=180, y=80)
-    cancel=tk.Button(master,text="Cancel", command=master.destroy ,fg="white"  ,bg="#e74c3c" ,height=1,width=25 , activebackground = "#c0392b" ,font=('Segoe UI', 10, 'bold'),relief='flat',cursor='hand2')
-    cancel.place(x=200, y=120)
-    save1 = tk.Button(master, text="Save", command=save_pass, fg="white", bg="#27ae60", height = 1,width=25, activebackground="#229954", font=('Segoe UI', 10, 'bold'),relief='flat',cursor='hand2')
-    save1.place(x=10, y=120)
-    master.mainloop()
+    global master, old_var, new_var, nnew_var
+    master = tk.Toplevel(window)
+    master.title('Change Password')
+    master.geometry('420x180')
+    master.resizable(False, False)
+    master.configure(bg=BASE_BG)
 
-# password 
+    frm = ttk.Frame(master, padding=16)
+    frm.pack(fill='both', expand=True)
+
+    ttk.Label(frm, text='Enter Old Password').grid(row=0, column=0, sticky='w')
+    old_var = tk.StringVar()
+    ttk.Entry(frm, textvariable=old_var, show='*', width=30).grid(row=0, column=1, pady=6)
+
+    ttk.Label(frm, text='Enter New Password').grid(row=1, column=0, sticky='w')
+    new_var = tk.StringVar()
+    ttk.Entry(frm, textvariable=new_var, show='*', width=30).grid(row=1, column=1, pady=6)
+
+    ttk.Label(frm, text='Confirm New Password').grid(row=2, column=0, sticky='w')
+    nnew_var = tk.StringVar()
+    ttk.Entry(frm, textvariable=nnew_var, show='*', width=30).grid(row=2, column=1, pady=6)
+
+    btn_frame = ttk.Frame(frm)
+    btn_frame.grid(row=3, column=0, columnspan=2, pady=(12, 0), sticky='e')
+
+    ttk.Button(btn_frame, text='Cancel', command=master.destroy).pack(side='right', padx=6)
+    ttk.Button(btn_frame, text='Save', command=save_pass).pack(side='right')
+
+# ----------------------------- Set or check master password for training -----------------------------
 
 def psw():
     assure_path_exists("TrainingImageLabel/")
-    exists1 = os.path.isfile("TrainingImageLabel\psd.txt")
-    if exists1:
-        tf = open("TrainingImageLabel\psd.txt", "r")
-        key = tf.read()
-    else:
-        new_pas = tsd.askstring('Old Password not found', 'Please enter a new password below', show='*')
-        if new_pas == None:
-            mess._show(title='No Password Entered', message='Password not set!! Please try again')
-        else:
-            tf = open("TrainingImageLabel\psd.txt", "w")
-            tf.write(new_pas)
-            mess._show(title='Password Registered', message='New password was registered successfully!!')
+    exists1 = os.path.isfile("TrainingImageLabel/psd.txt")
+    if not exists1:
+        new_pas = tsd.askstring('Password', 'Old Password not found. Enter a new password:', show='*')
+        if new_pas is None:
+            show_warning('No Password', 'Password not set!')
             return
-    password = tsd.askstring('Password', 'Enter Password', show='*')
-    if (password == key):
-        TrainImages()
-    elif (password == None):
-        pass
-    else:
-        mess._show(title='Wrong Password', message='You have entered wrong password')
+        else:
+            with open("TrainingImageLabel/psd.txt", "w") as tf:
+                tf.write(new_pas)
+            show_info('Registered', 'New password was registered successfully!')
+            return
 
-# image capture 
+    with open("TrainingImageLabel/psd.txt", "r") as tf:
+        key = tf.read()
+
+    password = tsd.askstring('Password', 'Enter Password', show='*')
+    if password == key:
+        TrainImages()
+    elif password is None:
+        return
+    else:
+        show_error('Wrong Password', 'You have entered wrong password')
+
+# ----------------------------- Clear entries -----------------------------
+
 def clear():
-    txt.delete(0, 'end')
-    res = "1)Take Images  >>>  2)Save Profile"
-    message1.configure(text=res)
+    id_var.set("")
+    status_var.set("1) Take Images  >>>  2) Save Profile")
 
 
 def clear2():
-    txt2.delete(0, 'end')
-    res = "1)Take Images  >>>  2)Save Profile"
-    message1.configure(text=res)
+    name_var.set("")
+    status_var.set("1) Take Images  >>>  2) Save Profile")
+
+# ----------------------------- TakeImages (capture) -----------------------------
 
 def TakeImages():
     check_haarcascadefile()
     columns = ['SERIAL NO.', '', 'ID', '', 'NAME']
     assure_path_exists("StudentDetails/")
     assure_path_exists("TrainingImage/")
+
     serial = 0
-    exists = os.path.isfile("StudentDetails\StudentDetails.csv")
+    exists = os.path.isfile("StudentDetails/StudentDetails.csv")
     if exists:
-        with open("StudentDetails\StudentDetails.csv", 'r') as csvFile1:
+        with open("StudentDetails/StudentDetails.csv", 'r') as csvFile1:
             reader1 = csv.reader(csvFile1)
             for l in reader1:
-                serial = serial + 1
+                serial += 1
         serial = (serial // 2)
-        csvFile1.close()
     else:
-        with open("StudentDetails\StudentDetails.csv", 'a+') as csvFile1:
+        with open("StudentDetails/StudentDetails.csv", 'a+') as csvFile1:
             writer = csv.writer(csvFile1)
             writer.writerow(columns)
             serial = 1
-        csvFile1.close()
-    Id = (txt.get())
-    name = (txt2.get())
-    if ((name.isalpha()) or (' ' in name)):
+
+    Id = id_var.get().strip()
+    name = name_var.get().strip()
+
+    if not Id:
+        show_warning('Missing ID', 'Please enter an ID before taking images.')
+        return
+
+    if (name.replace(' ', '').isalpha() and name):
         cam = cv2.VideoCapture(0)
         harcascadePath = "haarcascade_frontalface_default.xml"
         detector = cv2.CascadeClassifier(harcascadePath)
         sampleNum = 0
-        while (True):
+        show_info('Instructions', 'A capture window will open. Press q to stop early. 100 samples will be taken automatically.')
+        while True:
             ret, img = cam.read()
+            if not ret:
+                show_error('Camera Error', 'Failed to read from the camera.')
+                break
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = detector.detectMultiScale(gray, 1.3, 5)
             for (x, y, w, h) in faces:
                 cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                # incrementing sample number
-                sampleNum = sampleNum + 1
-                # saving the captured face in the dataset folder TrainingImage
-                cv2.imwrite("TrainingImage\ " + name + "." + str(serial) + "." + Id + '.' + str(sampleNum) + ".jpg",
-                            gray[y:y + h, x:x + w])
-                # display the frame
-                cv2.imshow('Taking Images', img)
-            # wait for 100 miliseconds
+                sampleNum += 1
+                fname = os.path.join('TrainingImage', f"{name}.{serial}.{Id}.{sampleNum}.jpg")
+                cv2.imwrite(fname, gray[y:y + h, x:x + w])
+                cv2.imshow('Capturing (press q to quit)', img)
             if cv2.waitKey(100) & 0xFF == ord('q'):
                 break
-            # break if the sample number is morethan 100
             elif sampleNum > 100:
                 break
         cam.release()
         cv2.destroyAllWindows()
-        res = "Images Taken for ID : " + Id
+        res = f"Images Taken for ID : {Id}"
         row = [serial, '', Id, '', name]
-        with open('StudentDetails\StudentDetails.csv', 'a+') as csvFile:
+        with open('StudentDetails/StudentDetails.csv', 'a+') as csvFile:
             writer = csv.writer(csvFile)
             writer.writerow(row)
-        csvFile.close()
-        message1.configure(text=res)
+        status_var.set(res)
     else:
-        if (name.isalpha() == False):
-            res = "Enter Correct name"
-            message.configure(text=res)
+        show_error('Invalid Name', 'Enter correct name (alphabetic characters and spaces only).')
 
-# recognise the image 
+# ----------------------------- TrainImages -----------------------------
+
+def getImagesAndLabels(path):
+    imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
+    faces = []
+    Ids = []
+    for imagePath in imagePaths:
+        pilImage = Image.open(imagePath).convert('L')
+        imageNp = np.array(pilImage, 'uint8')
+        ID = int(os.path.split(imagePath)[-1].split(".")[1])
+        faces.append(imageNp)
+        Ids.append(ID)
+    return faces, Ids
+
 
 def TrainImages():
     check_haarcascadefile()
@@ -199,77 +261,65 @@ def TrainImages():
     recognizer = cv2.face_LBPHFaceRecognizer.create()
     harcascadePath = "haarcascade_frontalface_default.xml"
     detector = cv2.CascadeClassifier(harcascadePath)
-    faces, ID = getImagesAndLabels("TrainingImage")
     try:
-        recognizer.train(faces, np.array(ID))
-    except:
-        mess._show(title='No Registrations', message='Please Register someone first!!!')
+        faces, IDs = getImagesAndLabels("TrainingImage")
+        recognizer.train(faces, np.array(IDs))
+    except Exception as e:
+        show_error('No Registrations', 'Please register someone first!')
         return
-    recognizer.save("TrainingImageLabel\Trainner.yml")
-    res = "Profile Saved Successfully"
-    message1.configure(text=res)
-    message.configure(text='Total Registrations till now  : ' + str(ID[0]))
+    recognizer.save("TrainingImageLabel/Trainner.yml")
+    status_var.set('Profile Saved Successfully')
+    try:
+        message_label.config(text=f'Total Registrations till now  : {IDs[0]}')
+    except Exception:
+        pass
 
-def getImagesAndLabels(path):
-    # get the path of all the files in the folder
-    imagePaths = [os.path.join(path, f) for f in os.listdir(path)]
-    # create empth face list
-    faces = []
-    # create empty ID list
-    Ids = []
-    # now looping through all the image paths and loading the Ids and the images
-    for imagePath in imagePaths:
-        # loading the image and converting it to gray scale
-        pilImage = Image.open(imagePath).convert('L')
-        # Now we are converting the PIL image into numpy array
-        imageNp = np.array(pilImage, 'uint8')
-        # getting the Id from the image
-        ID = int(os.path.split(imagePath)[-1].split(".")[1])
-        # extract the face from the training image sample
-        faces.append(imageNp)
-        Ids.append(ID)
-    return faces, Ids
-
-# image tracking 
+# ----------------------------- TrackImages (attendance) -----------------------------
 
 def TrackImages():
     check_haarcascadefile()
     assure_path_exists("Attendance/")
     assure_path_exists("StudentDetails/")
+
     for k in tv.get_children():
         tv.delete(k)
-    msg = ''
-    i = 0
-    j = 0
-    recognizer = cv2.face.LBPHFaceRecognizer_create()  # cv2.createLBPHFaceRecognizer()
-    exists3 = os.path.isfile("TrainingImageLabel\Trainner.yml")
+
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    exists3 = os.path.isfile("TrainingImageLabel/Trainner.yml")
     if exists3:
-        recognizer.read("TrainingImageLabel\Trainner.yml")
+        recognizer.read("TrainingImageLabel/Trainner.yml")
     else:
-        mess._show(title='Data Missing', message='Please click on Save Profile to reset data!!')
+        show_error('Data Missing', 'Please click on Save Profile to reset data!!')
         return
+
     harcascadePath = "haarcascade_frontalface_default.xml"
-    faceCascade = cv2.CascadeClassifier(harcascadePath);
+    faceCascade = cv2.CascadeClassifier(harcascadePath)
 
     cam = cv2.VideoCapture(0)
     font = cv2.FONT_HERSHEY_SIMPLEX
     col_names = ['Id', '', 'Name', '', 'Date', '', 'Time']
-    exists1 = os.path.isfile("StudentDetails\StudentDetails.csv")
+    exists1 = os.path.isfile("StudentDetails/StudentDetails.csv")
     if exists1:
-        df = pd.read_csv("StudentDetails\StudentDetails.csv")
+        df = pd.read_csv("StudentDetails/StudentDetails.csv")
     else:
-        mess._show(title='Details Missing', message='Students details are missing, please check!')
+        show_error('Details Missing', 'Student details are missing, please check!')
         cam.release()
         cv2.destroyAllWindows()
-        window.destroy()
+        return
+
+    attendance = None
+    show_info('Instructions', 'Camera window will open. Press q to stop attendance capture.')
     while True:
         ret, im = cam.read()
+        if not ret:
+            show_error('Camera Error', 'Failed to read from the camera.')
+            break
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         faces = faceCascade.detectMultiScale(gray, 1.2, 5)
         for (x, y, w, h) in faces:
             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
             serial, conf = recognizer.predict(gray[y:y + h, x:x + w])
-            if (conf < 50):
+            if conf < 50:
                 ts = time.time()
                 date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
                 timeStamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
@@ -280,189 +330,208 @@ def TrackImages():
                 bb = str(aa)
                 bb = bb[2:-2]
                 attendance = [str(ID), '', bb, '', str(date), '', str(timeStamp)]
-
             else:
-                Id = 'Unknown'
-                bb = str(Id)
+                bb = 'Unknown'
             cv2.putText(im, str(bb), (x, y + h), font, 1, (255, 255, 255), 2)
-        cv2.imshow('Taking Attendance', im)
+        cv2.imshow('Taking Attendance (press q to quit)', im)
         if (cv2.waitKey(1) == ord('q')):
             break
+
     ts = time.time()
     date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
-    exists = os.path.isfile("Attendance\Attendance_" + date + ".csv")
-    if exists:
-        with open("Attendance\Attendance_" + date + ".csv", 'a+') as csvFile1:
-            writer = csv.writer(csvFile1)
-            writer.writerow(attendance)
-        csvFile1.close()
+
+    if attendance is None:
+        show_warning('No Attendance', 'No recognized faces were recorded.')
     else:
-        with open("Attendance\Attendance_" + date + ".csv", 'a+') as csvFile1:
-            writer = csv.writer(csvFile1)
-            writer.writerow(col_names)
-            writer.writerow(attendance)
-        csvFile1.close()
-    with open("Attendance\Attendance_" + date + ".csv", 'r') as csvFile1:
-        reader1 = csv.reader(csvFile1)
-        for lines in reader1:
-            i = i + 1
-            if (i > 1):
-                if (i % 2 != 0):
-                    iidd = str(lines[0]) + '   '
-                    tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6])))
+        exists = os.path.isfile(f"Attendance/Attendance_{date}.csv")
+        if exists:
+            with open(f"Attendance/Attendance_{date}.csv", 'a+') as csvFile1:
+                writer = csv.writer(csvFile1)
+                writer.writerow(attendance)
+        else:
+            with open(f"Attendance/Attendance_{date}.csv", 'a+') as csvFile1:
+                writer = csv.writer(csvFile1)
+                writer.writerow(col_names)
+                writer.writerow(attendance)
+
+        with open(f"Attendance/Attendance_{date}.csv", 'r') as csvFile1:
+            reader1 = csv.reader(csvFile1)
+            i = 0
+            for lines in reader1:
+                i += 1
+                if i > 1:
+                    if i % 2 != 0:
+                        iidd = str(lines[0]) + '   '
+                        tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6])))
+
     csvFile1.close()
     cam.release()
     cv2.destroyAllWindows()
 
-# date and time (real time)
-    
-global key
-key = ''
+# ----------------------------- Initialize main window + styles -----------------------------
 
-ts = time.time()
-date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
-day,month,year=date.split("-")
-
-mont={'01':'January',
-      '02':'February',
-      '03':'March',
-      '04':'April',
-      '05':'May',
-      '06':'June',
-      '07':'July',
-      '08':'August',
-      '09':'September',
-      '10':'October',
-      '11':'November',
-      '12':'December'
-      }
-
-# GUI FRONT-END
+# Color & style constants
+BASE_BG = '#f5f5f5'
+CARD_BG = '#ffffff'
+ACCENT = '#4a90e2'
+TEXT = '#333333'
 
 window = tk.Tk()
-window.geometry("1280x720")
-window.resizable(True,False)
-window.title("Attendance System")
-window.configure(background='#f5f5f5')
+window.title('Face Recognition Attendance System')
+window.geometry('1280x720')
+window.configure(bg=BASE_BG)
+window.resizable(True, False)
 
-frame1 = tk.Frame(window, bg="#ffffff", relief='solid', borderwidth=1)
-frame1.place(relx=0.11, rely=0.17, relwidth=0.39, relheight=0.80)
+# ttk style
+style = ttk.Style(window)
+try:
+    style.theme_use('clam')
+except Exception:
+    pass
 
-frame2 = tk.Frame(window, bg="#ffffff", relief='solid', borderwidth=1)
-frame2.place(relx=0.51, rely=0.17, relwidth=0.38, relheight=0.80)
+style.configure('TFrame', background=BASE_BG)
+style.configure('Card.TFrame', background=CARD_BG, relief='flat')
+style.configure('Header.TLabel', background=BASE_BG, foreground=TEXT, font=('Segoe UI', 20, 'bold'))
+style.configure('SubHeader.TLabel', background=CARD_BG, foreground=TEXT, font=('Segoe UI', 14, 'bold'))
+style.configure('TLabel', background=BASE_BG, foreground=TEXT, font=('Segoe UI', 11))
+style.configure('Accent.TButton', background=ACCENT, foreground='white', font=('Segoe UI', 11, 'bold'), padding=8)
+style.map('Accent.TButton', background=[('active', '#357ABD')])
+style.configure('Danger.TButton', background='#e14c4c', foreground='white')
+style.configure('Success.TButton', background='#3ece48', foreground='white')
 
-message3 = tk.Label(window, text="Face Recognition Based Attendance System" ,fg="#2c3e50",bg="#f5f5f5" ,width=55 ,height=1,font=('Segoe UI', 28, 'bold'))
-message3.place(x=10, y=10)
+# Variables
+clock_var = tk.StringVar()
+status_var = tk.StringVar(value='1) Take Images  >>>  2) Save Profile')
+id_var = tk.StringVar()
+name_var = tk.StringVar()
 
-frame3 = tk.Frame(window, bg="#ffffff", relief='solid', borderwidth=1)
-frame3.place(relx=0.52, rely=0.09, relwidth=0.09, relheight=0.07)
+# Header
+header = ttk.Label(window, text='Face Recognition Based Attendance System', style='Header.TLabel')
+header.place(relx=0.02, rely=0.02)
 
-frame4 = tk.Frame(window, bg="#ffffff", relief='solid', borderwidth=1)
-frame4.place(relx=0.36, rely=0.09, relwidth=0.16, relheight=0.07)
+# Date & Clock cards
+now = datetime.datetime.now()
+date_str = now.strftime('%d - %B - %Y')
 
-datef = tk.Label(frame4, text = day+"-"+mont[month]+"-"+year+"  |  ", fg="#5d6d7e",bg="#ffffff" ,width=55 ,height=1,font=('Segoe UI', 18))
-datef.pack(fill='both',expand=1)
+date_card = ttk.Frame(window, style='Card.TFrame', padding=(12, 8))
+date_card.place(relx=0.68, rely=0.02, relwidth=0.28, relheight=0.08)
 
-clock = tk.Label(frame3,fg="#5d6d7e",bg="#ffffff" ,width=55 ,height=1,font=('Segoe UI', 18))
-clock.pack(fill='both',expand=1)
+ttk.Label(date_card, text=date_str, font=('Segoe UI', 12, 'bold'), background=CARD_BG).pack(side='left')
+clock_label = ttk.Label(date_card, textvariable=clock_var, font=('Segoe UI', 12, 'bold'), background=CARD_BG)
+clock_label.pack(side='right')
+
 tick()
 
-head2 = tk.Label(frame2, text="                       For New Registrations                       ", fg="white",bg="#5d6d7e" ,font=('Segoe UI', 16, 'bold'))
-head2.grid(row=0,column=0)
+# Left card (Attendance)
+left_card = ttk.Frame(window, style='Card.TFrame', padding=16)
+left_card.place(relx=0.05, rely=0.12, relwidth=0.42, relheight=0.8)
 
-head1 = tk.Label(frame1, text="                       For Already Registered                       ", fg="white",bg="#5d6d7e" ,font=('Segoe UI', 16, 'bold'))
-head1.place(x=0,y=0)
+ttk.Label(left_card, text='Attendance', style='SubHeader.TLabel').pack(anchor='w')
 
-lbl = tk.Label(frame2, text="Enter ID",width=20  ,height=1  ,fg="#2c3e50"  ,bg="#ffffff" ,font=('Segoe UI', 14))
-lbl.place(x=80, y=55)
+# Buttons for attendance
+att_btn_frame = ttk.Frame(left_card, padding=(0, 10))
+att_btn_frame.pack(fill='x')
 
-txt = tk.Entry(frame2,width=32 ,fg="#2c3e50",font=('Segoe UI', 13),relief='solid',borderwidth=1)
-txt.place(x=30, y=88)
+track_btn = ttk.Button(att_btn_frame, text='Take Attendance', style='Accent.TButton', command=TrackImages)
+track_btn.pack(side='left', padx=(0, 6))
 
-lbl2 = tk.Label(frame2, text="Enter Name",width=20  ,fg="#2c3e50"  ,bg="#ffffff" ,font=('Segoe UI', 14))
-lbl2.place(x=80, y=140)
+quit_btn = ttk.Button(att_btn_frame, text='Quit', command=window.destroy)
+quit_btn.pack(side='left')
 
-txt2 = tk.Entry(frame2,width=32 ,fg="#2c3e50",font=('Segoe UI', 13),relief='solid',borderwidth=1)
-txt2.place(x=30, y=173)
+# Treeview for attendance
+tv_frame = ttk.Frame(left_card)
+tv_frame.pack(fill='both', expand=True, pady=(8, 0))
 
-message1 = tk.Label(frame2, text="1)Take Images  >>>  2)Save Profile" ,bg="#ecf0f1" ,fg="#34495e"  ,width=39 ,height=1, activebackground = "#bdc3c7" ,font=('Segoe UI', 13))
-message1.place(x=7, y=230)
+cols = ('name', 'date', 'time')
+tv = ttk.Treeview(tv_frame, columns=cols, show='tree headings', height=14)
+tv.heading('#0', text='ID')
+tv.column('#0', width=80)
+for c in cols:
+    tv.heading(c, text=c.upper())
+    tv.column(c, width=150)
 
-message = tk.Label(frame2, text="" ,bg="#ecf0f1" ,fg="#34495e"  ,width=39,height=1, activebackground = "#bdc3c7" ,font=('Segoe UI', 13))
-message.place(x=7, y=450)
+tv.pack(side='left', fill='both', expand=True)
 
-lbl3 = tk.Label(frame1, text="Attendance",width=20  ,fg="#2c3e50"  ,bg="#ffffff"  ,height=1 ,font=('Segoe UI', 16, 'bold'))
-lbl3.place(x=100, y=115)
+scroll = ttk.Scrollbar(tv_frame, orient='vertical', command=tv.yview)
+scroll.pack(side='right', fill='y')
+tv.configure(yscroll=scroll.set)
 
-res=0
-exists = os.path.isfile("StudentDetails\StudentDetails.csv")
+# Right card (Registration)
+right_card = ttk.Frame(window, style='Card.TFrame', padding=16)
+right_card.place(relx=0.49, rely=0.12, relwidth=0.46, relheight=0.8)
+
+ttk.Label(right_card, text='New Registrations', style='SubHeader.TLabel').pack(anchor='w')
+
+form = ttk.Frame(right_card, padding=(0, 10))
+form.pack(fill='x')
+
+# ID row
+id_row = ttk.Frame(form)
+id_row.pack(fill='x', pady=8)
+
+ttk.Label(id_row, text='Enter ID', width=16).pack(side='left')
+entry_id = ttk.Entry(id_row, textvariable=id_var, width=30)
+entry_id.pack(side='left')
+
+ttk.Button(id_row, text='Clear', command=clear).pack(side='left', padx=8)
+
+# Name row
+name_row = ttk.Frame(form)
+name_row.pack(fill='x', pady=8)
+
+ttk.Label(name_row, text='Enter Name', width=16).pack(side='left')
+entry_name = ttk.Entry(name_row, textvariable=name_var, width=30)
+entry_name.pack(side='left')
+
+ttk.Button(name_row, text='Clear', command=clear2).pack(side='left', padx=8)
+
+# Status
+message_label = ttk.Label(form, text='')
+message_label.pack(anchor='w', pady=(4, 10))
+message_label.config(text='Total Registrations till now  : 0')
+
+status_label = ttk.Label(form, textvariable=status_var, wraplength=420)
+status_label.pack(anchor='w')
+
+# Action buttons
+action_frame = ttk.Frame(right_card)
+action_frame.pack(fill='x', pady=(18, 0))
+
+take_btn = ttk.Button(action_frame, text='Take Images', style='Accent.TButton', command=TakeImages)
+take_btn.pack(fill='x', pady=4)
+
+save_btn = ttk.Button(action_frame, text='Save Profile', style='Accent.TButton', command=psw)
+save_btn.pack(fill='x', pady=4)
+
+# Footer small status
+footer = ttk.Frame(window, padding=8)
+footer.place(relx=0.02, rely=0.95, relwidth=0.96)
+
+status_small = ttk.Label(footer, text='Ready', background=BASE_BG)
+status_small.pack(side='left')
+
+# Menubar (Help)
+menubar = tk.Menu(window)
+filemenu = tk.Menu(menubar, tearoff=0)
+filemenu.add_command(label='Change Password', command=change_pass)
+filemenu.add_command(label='Contact Us', command=contact)
+filemenu.add_command(label='Exit', command=window.destroy)
+menubar.add_cascade(label='Help', menu=filemenu)
+window.config(menu=menubar)
+
+# Populate total registrations count (if existing)
+res = 0
+exists = os.path.isfile("StudentDetails/StudentDetails.csv")
 if exists:
-    with open("StudentDetails\StudentDetails.csv", 'r') as csvFile1:
+    with open("StudentDetails/StudentDetails.csv", 'r') as csvFile1:
         reader1 = csv.reader(csvFile1)
         for l in reader1:
-            res = res + 1
+            res += 1
     res = (res // 2) - 1
-    csvFile1.close()
 else:
     res = 0
-message.configure(text='Total Registrations till now  : '+str(res))
+message_label.config(text=f'Total Registrations till now  : {res}')
 
-# MENUBAR
-
-menubar = tk.Menu(window,relief='flat',bg='#ecf0f1',fg='#2c3e50',font=('Segoe UI', 10))
-filemenu = tk.Menu(menubar,tearoff=0,bg='#ecf0f1',fg='#2c3e50',font=('Segoe UI', 10))
-filemenu.add_command(label='Change Password', command = change_pass)
-filemenu.add_command(label='Contact Us', command = contact)
-filemenu.add_command(label='Exit',command = window.destroy)
-menubar.add_cascade(label='Help',font=('Segoe UI', 11),menu=filemenu)
-
-# TREEVIEW ATTENDANCE TABLE 
-
-style = ttk.Style()
-style.theme_use('clam')
-style.configure("Treeview",
-                background="#ffffff",
-                foreground="#2c3e50",
-                rowheight=25,
-                fieldbackground="#ffffff",
-                font=('Segoe UI', 10))
-style.map('Treeview', background=[('selected', '#5d6d7e')])
-style.configure("Treeview.Heading",
-                background="#5d6d7e",
-                foreground="white",
-                font=('Segoe UI', 11, 'bold'))
-
-tv= ttk.Treeview(frame1,height =13,columns = ('name','date','time'))
-tv.column('#0',width=82)
-tv.column('name',width=130)
-tv.column('date',width=133)
-tv.column('time',width=133)
-tv.grid(row=2,column=0,padx=(0,0),pady=(150,0),columnspan=4)
-tv.heading('#0',text ='ID')
-tv.heading('name',text ='NAME')
-tv.heading('date',text ='DATE')
-tv.heading('time',text ='TIME')
-
-# SCROLLBAR 
-
-scroll=ttk.Scrollbar(frame1,orient='vertical',command=tv.yview)
-scroll.grid(row=2,column=4,padx=(0,100),pady=(150,0),sticky='ns')
-tv.configure(yscrollcommand=scroll.set)
-
-# BUTTONS
-
-clearButton = tk.Button(frame2, text="Clear", command=clear  ,fg="white"  ,bg="#95a5a6"  ,width=11 ,activebackground = "#7f8c8d" ,font=('Segoe UI', 10, 'bold'),relief='flat',cursor='hand2')
-clearButton.place(x=335, y=86)
-clearButton2 = tk.Button(frame2, text="Clear", command=clear2  ,fg="white"  ,bg="#95a5a6"  ,width=11 , activebackground = "#7f8c8d" ,font=('Segoe UI', 10, 'bold'),relief='flat',cursor='hand2')
-clearButton2.place(x=335, y=172)    
-takeImg = tk.Button(frame2, text="Take Images", command=TakeImages  ,fg="white"  ,bg="#3498db"  ,width=34  ,height=1, activebackground = "#2980b9" ,font=('Segoe UI', 14, 'bold'),relief='flat',cursor='hand2')
-takeImg.place(x=30, y=300)
-trainImg = tk.Button(frame2, text="Save Profile", command=psw ,fg="white"  ,bg="#3498db"  ,width=34  ,height=1, activebackground = "#2980b9" ,font=('Segoe UI', 14, 'bold'),relief='flat',cursor='hand2')
-trainImg.place(x=30, y=380)
-trackImg = tk.Button(frame1, text="Take Attendance", command=TrackImages  ,fg="white"  ,bg="#27ae60"  ,width=35  ,height=1, activebackground = "#229954" ,font=('Segoe UI', 14, 'bold'),relief='flat',cursor='hand2')
-trackImg.place(x=30,y=50)
-quitWindow = tk.Button(frame1, text="Quit", command=window.destroy  ,fg="white"  ,bg="#e74c3c"  ,width=35 ,height=1, activebackground = "#c0392b" ,font=('Segoe UI', 14, 'bold'),relief='flat',cursor='hand2')
-quitWindow.place(x=30, y=450)
-
-window.configure(menu=menubar)
-window.mainloop()
+# Start mainloop
+if __name__ == '__main__':
+    window.mainloop()
