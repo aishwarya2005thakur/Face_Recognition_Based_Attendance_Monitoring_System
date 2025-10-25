@@ -60,10 +60,17 @@ python main.py
  ┣ 📜 requirements.txt   # Dependencies
  ┗ 📜 README.md          # Documentation
 ```
+---
+## 📸 Screenshots 
+
+<img src ="![WhatsApp Image 2025-10-09 at 11 30 00_7cda1c97](https://github.com/user-attachments/assets/fd96599b-db73-4816-bcc7-a756e4df5407)">
+
 
 ---
 
-## 📸 Sample Output
+---
+
+##  Sample Output
 
 * Recognized faces displayed with bounding boxes
 * Attendance auto-saved as:
