@@ -4,7 +4,7 @@ A smart attendance system that uses **face recognition** to automatically detect
 
 ---
 
-## 🚀 Features
+##  Features
 
 * 🎥 Real-time face detection and recognition
 * 🧾 Automatic attendance marking with date & time
@@ -14,7 +14,7 @@ A smart attendance system that uses **face recognition** to automatically detect
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **Python**
 * **OpenCV** – for face detection
@@ -24,7 +24,7 @@ A smart attendance system that uses **face recognition** to automatically detect
 
 ---
 
-## ⚙️ How It Works
+##  How It Works
 
 1. **Register Faces:** Capture and store images of each user.
 2. **Train Model:** Encode facial features and store them for recognition.
@@ -33,7 +33,7 @@ A smart attendance system that uses **face recognition** to automatically detect
 
 ---
 
-## 🧩 Installation
+##  Installation
 
 ```bash
 # Clone the repo
@@ -49,7 +49,7 @@ python main.py
 
 ---
 
-## 📁 Folder Structure
+##  Folder Structure
 
 ```
 📦 FaceRecognitionAttendance
@@ -61,9 +61,15 @@ python main.py
  ┗ 📜 README.md          # Documentation
 ```
 ---
-## 📸 Screenshots 
+##  Screenshots 
 
-<img src ="![WhatsApp Image 2025-10-09 at 11 30 00_7cda1c97](https://github.com/user-attachments/assets/fd96599b-db73-4816-bcc7-a756e4df5407)">
+interface
+![WhatsApp Image 2025-10-09 at 11 30 00_7cda1c97](https://github.com/user-attachments/assets/fd96599b-db73-4816-bcc7-a756e4df5407)
+![WhatsApp Image 2025-10-09 at 11 30 00_ce26a284](https://github.com/user-attachments/assets/e5253bcd-5e78-4a05-9ba4-9217ce0cb8c8)
+![WhatsApp Image 2025-10-09 at 11 29 59_4117739d](https://github.com/user-attachments/assets/c4821dcf-1747-4841-953f-e177fe83b58f)
+![WhatsApp Image 2025-10-25 at 16 36 37_05273de1](https://github.com/user-attachments/assets/b86b06cd-4ae7-432f-907e-59ca629f5f82)
+![WhatsApp Image 2025-10-09 at 11 29 59_1ae6f7be](https://github.com/user-attachments/assets/1beccf2c-6c14-4ca1-adc2-446d80786aa1)
+
 
 
 ---
@@ -82,7 +88,7 @@ python main.py
 
 ---
 
-## 🧑‍💻 Future Improvements
+##  Future Improvements
 
 * Cloud database integration (Firebase / MySQL)
 * Mobile app or web-based dashboard
@@ -90,6 +96,6 @@ python main.py
 
 ---
 
-## 🪪 License
+##  License
 
 This project is open-source and available under the [MIT License](LICENSE).
