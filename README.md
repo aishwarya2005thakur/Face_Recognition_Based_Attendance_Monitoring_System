@@ -65,23 +65,23 @@ python main.py
 
  User interface :
  
-<img src="https://github.com/user-attachments/assets/fd96599b-db73-4816-bcc7-a756e4df5407" alt="screenshot" width="400"/>\
+<img src="https://github.com/user-attachments/assets/fd96599b-db73-4816-bcc7-a756e4df5407" alt="screenshot" width="600"/>
 
 login/Sign up :
 
-<img src="https://github.com/user-attachments/assets/e5253bcd-5e78-4a05-9ba4-9217ce0cb8c82" alt="screenshot" width="400"/>
+<img src="https://github.com/user-attachments/assets/e5253bcd-5e78-4a05-9ba4-9217ce0cb8c82" alt="screenshot" width="600"/>
 
 Password :
 
-<img src="https://github.com/user-attachments/assets/c4821dcf-1747-4841-953f-e177fe83b58f" alt="screenshot" width="400"/>
+<img src="https://github.com/user-attachments/assets/c4821dcf-1747-4841-953f-e177fe83b58f" alt="screenshot" width="600"/>
 
 face recognition :
 
-<img src="https://github.com/user-attachments/assets/b86b06cd-4ae7-432f-907e-59ca629f5f82" alt="screenshot" width="400"/>
+<img src="https://github.com/user-attachments/assets/b86b06cd-4ae7-432f-907e-59ca629f5f82" alt="screenshot" width="600"/>
 
 Attendance csv file :
 
-<img src="https://github.com/user-attachments/assets/1beccf2c-6c14-4ca1-adc2-446d80786aa1" alt="screenshot" width="400"/>
+<img src="https://github.com/user-attachments/assets/1beccf2c-6c14-4ca1-adc2-446d80786aa1" alt="screenshot" width="600"/>
 
 ---
 
